@@ -7,9 +7,24 @@ require('dotenv').config();
 const app = express();
 
 // --- CORS CONFIGURATION ---
-// Allows both standard and admin frontend ports to communicate with the backend
+// Allows local dev and deployed frontend (Render or custom domain)
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'], 
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like server-to-server or tools)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+            'http://localhost:5173',
+            'http://localhost:5174',
+            process.env.CLIENT_URL
+        ].filter(Boolean);
+
+        if (allowedOrigins.includes(origin) || origin.endsWith('.onrender.com')) {
+            return callback(null, true);
+        }
+        
+        return callback(null, true);
+    }, 
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 }));
